@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { collection, addDoc, serverTimestamp, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { CATEGORIES } from '../utils/helpers';
 
@@ -116,13 +116,19 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
 
     try {
       setLoading(true);
+      
+      // Use local timestamp to ensure correct date filtering
+      const now = new Date();
+      
       await addDoc(collection(db, 'expenses'), {
         userId,
         amount: parseFloat(amount),
         category,
         reason: reason.trim(),
-        timestamp: serverTimestamp()
+        timestamp: Timestamp.fromDate(now)
       });
+
+      console.log('Expense added with timestamp:', now.toISOString());
 
       // Success animation
       const successDiv = document.createElement('div');

@@ -10,8 +10,6 @@ const Dashboard = ({ userId, expenses, loadingExpenses, showToast }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  console.log('Dashboard render - expenses:', expenses?.length || 0);
-
   useEffect(() => {
     if (expenses && expenses.length > 0) {
       calculateTotals(expenses);
@@ -25,44 +23,62 @@ const Dashboard = ({ userId, expenses, loadingExpenses, showToast }) => {
     const { startDate: monthStart, endDate: monthEnd } = getMonthDateRange();
     const { startDate: todayStart, endDate: todayEnd } = getTodayDateRange();
     
-    console.log('Dashboard - Total expenses:', expensesData.length);
-    console.log('Dashboard - Sample expense:', expensesData[0]);
-    console.log('Dashboard - Month range:', monthStart, 'to', monthEnd);
-    console.log('Dashboard - Today range:', todayStart, 'to', todayEnd);
+    // Convert to milliseconds for accurate comparison
+    const monthStartMs = monthStart.getTime();
+    const monthEndMs = monthEnd.getTime();
+    const todayStartMs = todayStart.getTime();
+    const todayEndMs = todayEnd.getTime();
 
     // Calculate monthly total
-    const monthlyExpenses = expensesData
-      .filter(expense => {
-        if (!expense.timestamp) return false;
-        
-        // Handle Firestore Timestamp
-        const expenseDate = expense.timestamp.toDate ? expense.timestamp.toDate() : new Date(expense.timestamp);
-        console.log('Checking expense date:', expenseDate, 'for month');
-        return expenseDate >= monthStart && expenseDate <= monthEnd;
-      });
+    const monthlyExpenses = expensesData.filter(expense => {
+      if (!expense.timestamp) return false;
+      
+      // Handle Firestore Timestamp - convert to milliseconds
+      let expenseMs;
+      if (expense.timestamp.toDate) {
+        expenseMs = expense.timestamp.toDate().getTime();
+      } else if (expense.timestamp.toMillis) {
+        expenseMs = expense.timestamp.toMillis();
+      } else if (expense.timestamp instanceof Date) {
+        expenseMs = expense.timestamp.getTime();
+      } else {
+        expenseMs = new Date(expense.timestamp).getTime();
+      }
+      
+      return expenseMs >= monthStartMs && expenseMs <= monthEndMs;
+    });
     
-    console.log('Monthly expenses count:', monthlyExpenses.length);
     const monthly = monthlyExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
-    console.log('Monthly total:', monthly);
-    
     setMonthlyTotal(monthly);
 
     // Calculate today's total
-    const todayExpenses = expensesData
-      .filter(expense => {
-        if (!expense.timestamp) return false;
-        
-        // Handle Firestore Timestamp
-        const expenseDate = expense.timestamp.toDate ? expense.timestamp.toDate() : new Date(expense.timestamp);
-        console.log('Checking expense date:', expenseDate, 'for today');
-        return expenseDate >= todayStart && expenseDate <= todayEnd;
-      });
+    const todayExpenses = expensesData.filter(expense => {
+      if (!expense.timestamp) return false;
+      
+      // Handle Firestore Timestamp - convert to milliseconds
+      let expenseMs;
+      if (expense.timestamp.toDate) {
+        expenseMs = expense.timestamp.toDate().getTime();
+      } else if (expense.timestamp.toMillis) {
+        expenseMs = expense.timestamp.toMillis();
+      } else if (expense.timestamp instanceof Date) {
+        expenseMs = expense.timestamp.getTime();
+      } else {
+        expenseMs = new Date(expense.timestamp).getTime();
+      }
+      
+      return expenseMs >= todayStartMs && expenseMs <= todayEndMs;
+    });
     
-    console.log('Today expenses count:', todayExpenses.length);
     const today = todayExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
-    console.log('Today total:', today);
-    
     setTodayTotal(today);
+    
+    // Log summary for verification
+    console.log('📊 Dashboard Totals:', {
+      'Total Expenses': expensesData.length,
+      'This Month': `${monthlyExpenses.length} expenses = ${formatCurrency(monthly)}`,
+      'Today': `${todayExpenses.length} expenses = ${formatCurrency(today)}`
+    });
   };
 
   const handleQuickAdd = (categoryId) => {
@@ -255,12 +271,12 @@ const Dashboard = ({ userId, expenses, loadingExpenses, showToast }) => {
       {showModal && (
         <AddExpenseModal
           userId={userId}
-          initialCategory={selectedCategory}
+          preselectedCategory={selectedCategory}
           onClose={() => {
             setShowModal(false);
             setSelectedCategory(null);
           }}
-          onSuccess={handleExpenseAdded}
+          onExpenseAdded={handleExpenseAdded}
         />
       )}
     </div>

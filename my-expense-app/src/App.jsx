@@ -57,8 +57,7 @@ function App() {
     
     const q = query(
       collection(db, 'expenses'),
-      where('userId', '==', user.uid),
-      orderBy('timestamp', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, 
@@ -66,14 +65,20 @@ function App() {
         const expensesData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
-        console.log('App.jsx - Fetched expenses:', expensesData.length);
-        console.log('App.jsx - Sample expense:', expensesData[0]);
+        }))
+        .sort((a, b) => {
+          // Sort by timestamp descending
+          const timeA = a.timestamp?.toMillis?.() || 0;
+          const timeB = b.timestamp?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+        
         setExpenses(expensesData);
         setLoadingExpenses(false);
       },
       (error) => {
         console.error('Error fetching expenses:', error);
+        showToast(`Error loading data: ${error.message}`, 'error');
         setLoadingExpenses(false);
       }
     );

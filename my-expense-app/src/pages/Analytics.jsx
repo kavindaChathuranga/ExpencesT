@@ -30,8 +30,7 @@ const Analytics = ({ userId }) => {
       collection(db, 'expenses'),
       where('userId', '==', userId),
       where('timestamp', '>=', startDate),
-      where('timestamp', '<=', endDate),
-      orderBy('timestamp', 'asc')
+      where('timestamp', '<=', endDate)
     );
 
     const unsubscribe = onSnapshot(q,
@@ -39,7 +38,12 @@ const Analytics = ({ userId }) => {
         const expensesData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
+        }))
+        .sort((a, b) => {
+          const timeA = a.timestamp?.toMillis?.() || 0;
+          const timeB = b.timestamp?.toMillis?.() || 0;
+          return timeA - timeB; // ascending order
+        });
         setExpenses(expensesData);
         setLoading(false);
       },

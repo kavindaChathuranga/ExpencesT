@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Filter, Trash2, Calendar } from 'lucide-react';
 import { collection, query, where, onSnapshot, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { CATEGORIES, formatCurrency, formatDate, getMonthDateRange } from '../utils/helpers';
+import { CATEGORIES, formatCurrency, formatDate, getMonthDateRange, groupExpensesByDate } from '../utils/helpers';
 import SwipeableExpenseItem from '../components/SwipeableExpenseItem';
 import ConfirmDialog from '../components/ConfirmDialog';
 
@@ -44,8 +44,7 @@ const History = ({ userId, showToast }) => {
       collection(db, 'expenses'),
       where('userId', '==', userId),
       where('timestamp', '>=', startDate),
-      where('timestamp', '<=', endDate),
-      orderBy('timestamp', 'desc')
+      where('timestamp', '<=', endDate)
     );
 
     const unsubscribe = onSnapshot(q,
@@ -53,7 +52,12 @@ const History = ({ userId, showToast }) => {
         const expensesData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
+        }))
+        .sort((a, b) => {
+          const timeA = a.timestamp?.toMillis?.() || 0;
+          const timeB = b.timestamp?.toMillis?.() || 0;
+          return timeB - timeA; // descending order
+        });
         setExpenses(expensesData);
         setLoading(false);
       },
@@ -233,7 +237,7 @@ const History = ({ userId, showToast }) => {
         </div>
 
         {/* Expenses List */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           {filteredExpenses.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
@@ -241,39 +245,62 @@ const History = ({ userId, showToast }) => {
               <p className="text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters</p>
             </div>
           ) : (
-            filteredExpenses.map((expense, index) => {
-              const category = CATEGORIES.find(cat => cat.id === expense.category);
-              return (
-                <div 
-                  key={expense.id}
-                >
-                  <SwipeableExpenseItem onDelete={() => handleDelete(expense.id)}>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className={`w-12 h-12 ${category?.color || 'bg-gray-500'} rounded-full flex items-center justify-center text-2xl flex-shrink-0`}>
-                            {category?.icon || '💰'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {expense.reason}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {category?.name || 'Other'}
-                            </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                              {formatDate(expense.timestamp)}
-                            </p>
-                          </div>
+            (() => {
+              const groupedExpenses = groupExpensesByDate(filteredExpenses);
+              return Object.entries(groupedExpenses).map(([dateLabel, dayExpenses]) => (
+                <div key={dateLabel} className="space-y-2">
+                  {/* Date Header */}
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 px-1">
+                    {dateLabel}
+                  </h3>
+                  
+                  {/* Expenses for this date */}
+                  <div className="space-y-2">
+                    {dayExpenses.map((expense) => {
+                      const category = CATEGORIES.find(cat => cat.id === expense.category);
+                      return (
+                        <div key={expense.id}>
+                          <SwipeableExpenseItem onDelete={() => handleDelete(expense.id)}>
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <div className={`w-12 h-12 ${category?.color || 'bg-gray-500'} rounded-full flex items-center justify-center text-2xl flex-shrink-0`}>
+                                    {category?.icon || '💰'}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-gray-900 dark:text-white">
+                                      {expense.reason}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                      {category?.name || 'Other'}
+                                    </p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                      {formatDate(expense.timestamp)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <p className="font-semibold text-gray-900 dark:text-white">
+                                    {formatCurrency(expense.amount)}
+                                  </p>
+                                  <button
+                                    onClick={() => handleDelete(expense.id)}
+                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 active:scale-90"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </SwipeableExpenseItem>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <p className="font-semibold text-gray-900 dark:text-white">
-                            {formatCurrency(expense.amount)}
-                          </p>
-                          <button
-                            onClick={() => handleDelete(expense.id)}
-                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 active:scale-90"
-                          >
+                      );
+                    })}
+                  </div>
+                </div>
+              ));
+            })()
+          )}
                             <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                           </button>
                         </div>
