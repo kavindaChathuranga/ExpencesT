@@ -128,18 +128,12 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
         timestamp: Timestamp.fromDate(now)
       });
 
-      console.log('Expense added with timestamp:', now.toISOString());
-
-      // Success animation
-      const successDiv = document.createElement('div');
-      successDiv.className = 'animate-scale-in';
-      
+      // Close modal immediately on success
       onExpenseAdded();
       onClose();
     } catch (error) {
       console.error('Error adding expense:', error);
       setErrors({ submit: 'Failed to add expense. Please try again.' });
-    } finally {
       setLoading(false);
     }
   };
