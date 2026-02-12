@@ -21,6 +21,14 @@ const History = ({ userId, showToast, expenseCategories, incomeCategories }) => 
   const [showFilters, setShowFilters] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+  // Clear data when date range changes
+  useEffect(() => {
+    setExpenses([]);
+    setIncomes([]);
+    setFilteredTransactions([]);
+    setLoading(true);
+  }, [dateRange]);
+
   useEffect(() => {
     if (userId) {
       const unsubscribeExpenses = fetchExpenses();

@@ -16,6 +16,13 @@ const Analytics = ({ userId, expenseCategories, incomeCategories }) => {
   const [dateRange, setDateRange] = useState('month');
   const [viewType, setViewType] = useState('overview'); // 'overview', 'expenses', 'income'
 
+  // Clear data when date range changes
+  useEffect(() => {
+    setExpenses([]);
+    setIncomes([]);
+    setLoading(true);
+  }, [dateRange]);
+
   useEffect(() => {
     if (userId) {
       const unsubscribeExpenses = fetchExpenses();
@@ -103,6 +110,7 @@ const Analytics = ({ userId, expenseCategories, incomeCategories }) => {
     const dailyData = {};
     
     expenses.forEach(expense => {
+      if (!expense.timestamp?.toDate) return;
       const date = expense.timestamp.toDate();
       const day = date.getDate();
       if (!dailyData[day]) dailyData[day] = { income: 0, expense: 0 };
@@ -110,6 +118,7 @@ const Analytics = ({ userId, expenseCategories, incomeCategories }) => {
     });
 
     incomes.forEach(income => {
+      if (!income.timestamp?.toDate) return;
       const date = income.timestamp.toDate();
       const day = date.getDate();
       if (!dailyData[day]) dailyData[day] = { income: 0, expense: 0 };
