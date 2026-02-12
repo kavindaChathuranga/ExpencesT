@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { X, Settings } from 'lucide-react';
+import { X, Settings, Plus } from 'lucide-react';
 import { collection, addDoc, Timestamp, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { DEFAULT_INCOME_CATEGORIES } from '../utils/helpers';
 
 const AddIncomeModal = ({ userId, onClose, onIncomeAdded, preselectedCategory, categories, onManageCategories }) => {
-  // Use provided categories or fall back to defaults
-  const incomeCategories = categories && categories.length > 0 ? categories : DEFAULT_INCOME_CATEGORIES;
+  // Only use user-created categories
+  const incomeCategories = categories || [];
   
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(preselectedCategory || '');
@@ -222,27 +221,39 @@ const AddIncomeModal = ({ userId, onClose, onIncomeAdded, preselectedCategory, c
               )}
             </div>
             <div className="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-2">
-              {incomeCategories.map(cat => (
+              {incomeCategories.length > 0 ? (
+                incomeCategories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setCategory(cat.id);
+                      setTouched(prev => ({ ...prev, category: true }));
+                      validateField('category', cat.id);
+                    }}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95 ${
+                      category === cat.id 
+                        ? `${cat.color} text-white ring-2 ring-offset-1 ring-emerald-500 dark:ring-offset-gray-800` 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <span className="text-xl mb-1">{cat.icon}</span>
+                    <span className="text-[9px] font-medium text-center leading-tight">
+                      {cat.name}
+                    </span>
+                  </button>
+                ))
+              ) : (
                 <button
-                  key={cat.id}
                   type="button"
-                  onClick={() => {
-                    setCategory(cat.id);
-                    setTouched(prev => ({ ...prev, category: true }));
-                    validateField('category', cat.id);
-                  }}
-                  className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95 ${
-                    category === cat.id 
-                      ? `${cat.color} text-white ring-2 ring-offset-1 ring-emerald-500 dark:ring-offset-gray-800` 
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
+                  onClick={onManageCategories}
+                  className="col-span-3 flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-emerald-400 hover:text-emerald-500 transition-colors"
                 >
-                  <span className="text-xl mb-1">{cat.icon}</span>
-                  <span className="text-[9px] font-medium text-center leading-tight">
-                    {cat.name}
-                  </span>
+                  <Plus className="w-6 h-6 mb-1" />
+                  <span className="text-xs font-medium">Add Income Source</span>
+                  <span className="text-[10px] text-gray-400">Create your first income source</span>
                 </button>
-              ))}
+              )}
             </div>
             {errors.category && touched.category && (
               <p className="text-red-500 text-xs mt-1">{errors.category}</p>

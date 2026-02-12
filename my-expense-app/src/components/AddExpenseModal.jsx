@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { X, Settings } from 'lucide-react';
 import { collection, addDoc, Timestamp, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { DEFAULT_EXPENSE_CATEGORIES } from '../utils/helpers';
 
 const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory, categories, onManageCategories }) => {
-  // Use provided categories or fall back to defaults
-  const expenseCategories = categories && categories.length > 0 ? categories : DEFAULT_EXPENSE_CATEGORIES;
+  // Only use user-created categories
+  const expenseCategories = categories || [];
   
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(preselectedCategory || '');
@@ -222,27 +221,39 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory,
               )}
             </div>
             <div className="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-2">
-              {expenseCategories.map(cat => (
+              {expenseCategories.length > 0 ? (
+                expenseCategories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setCategory(cat.id);
+                      setTouched(prev => ({ ...prev, category: true }));
+                      validateField('category', cat.id);
+                    }}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95 ${
+                      category === cat.id 
+                        ? `${cat.color} text-white ring-2 ring-offset-1 ring-red-500 dark:ring-offset-gray-800` 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <span className="text-xl mb-1">{cat.icon}</span>
+                    <span className="text-[9px] font-medium text-center leading-tight">
+                      {cat.name}
+                    </span>
+                  </button>
+                ))
+              ) : (
                 <button
-                  key={cat.id}
                   type="button"
-                  onClick={() => {
-                    setCategory(cat.id);
-                    setTouched(prev => ({ ...prev, category: true }));
-                    validateField('category', cat.id);
-                  }}
-                  className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95 ${
-                    category === cat.id 
-                      ? `${cat.color} text-white ring-2 ring-offset-1 ring-red-500 dark:ring-offset-gray-800` 
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
+                  onClick={onManageCategories}
+                  className="col-span-3 flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors"
                 >
-                  <span className="text-xl mb-1">{cat.icon}</span>
-                  <span className="text-[9px] font-medium text-center leading-tight">
-                    {cat.name}
-                  </span>
+                  <span className="text-2xl mb-1">💸</span>
+                  <span className="text-xs font-medium">Add Category</span>
+                  <span className="text-[10px] text-gray-400">Create your first category</span>
                 </button>
-              ))}
+              )}
             </div>
             {errors.category && touched.category && (
               <p className="text-red-500 text-xs mt-1">{errors.category}</p>

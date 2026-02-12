@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
-import { LogOut, User, ChevronDown } from 'lucide-react';
+import { LogOut, User, ChevronDown, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const UserProfile = ({ user }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { darkMode, toggleDarkMode } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -20,7 +22,7 @@ const UserProfile = ({ user }) => {
   const displayName = user?.displayName || 'User';
   const email = user?.email || '';
   const photoURL = user?.photoURL;
-
+  
   return (
     <div className="relative">
       <button
@@ -31,6 +33,7 @@ const UserProfile = ({ user }) => {
           <img
             src={photoURL}
             alt={displayName}
+            referrerPolicy="no-referrer"
             className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm"
           />
         ) : (
@@ -59,6 +62,7 @@ const UserProfile = ({ user }) => {
                   <img
                     src={photoURL}
                     alt={displayName}
+                    referrerPolicy="no-referrer"
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
@@ -75,6 +79,31 @@ const UserProfile = ({ user }) => {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Theme Toggle */}
+            <div className="px-2 py-2 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={toggleDarkMode}
+                className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  {darkMode ? (
+                    <Moon className="w-4 h-4" />
+                  ) : (
+                    <Sun className="w-4 h-4" />
+                  )}
+                  <span>Theme</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {darkMode ? 'Dark' : 'Light'}
+                  </span>
+                  <div className={`w-9 h-5 rounded-full p-0.5 transition-colors ${darkMode ? 'bg-gray-600' : 'bg-amber-400'}`}>
+                    <div className={`w-4 h-4 rounded-full shadow-sm transition-transform ${darkMode ? 'translate-x-4 bg-gray-300' : 'translate-x-0 bg-white'}`} />
+                  </div>
+                </div>
+              </button>
             </div>
 
             {/* Logout Button */}

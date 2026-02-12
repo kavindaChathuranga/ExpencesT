@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Filter, Trash2, Calendar, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Filter, Trash2, Calendar, ArrowUpCircle, ArrowDownCircle, Download } from 'lucide-react';
 import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, formatCurrency, formatDate, getMonthDateRange, groupTransactionsByDate } from '../utils/helpers';
 import SwipeableExpenseItem from '../components/SwipeableExpenseItem';
 import ConfirmDialog from '../components/ConfirmDialog';
 import UserProfile from '../components/UserProfile';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const History = ({ userId, user, showToast, expenseCategories, incomeCategories }) => {
   // Use provided categories or fall back to defaults
@@ -183,6 +185,127 @@ const History = ({ userId, user, showToast, expenseCategories, incomeCategories 
     return [...CATEGORIES, ...INCOME_CATEGORIES];
   };
 
+  // Get period label for PDF
+  const getPeriodLabel = () => {
+    const now = new Date();
+    if (dateRange === 'month') {
+      return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    } else if (dateRange === 'lastMonth') {
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return lastMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    } else {
+      return 'All Time';
+    }
+  };
+
+  // Export to PDF function
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const periodLabel = getPeriodLabel();
+    
+    // Title
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Transaction History', 14, 22);
+    
+    // Period
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Period: ${periodLabel}`, 14, 32);
+    
+    // Summary box
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(14, 38, 182, 30, 3, 3, 'F');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text('Total Income:', 20, 48);
+    doc.text('Total Expenses:', 80, 48);
+    doc.text('Balance:', 140, 48);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(16, 185, 129); // Green
+    doc.text(formatCurrency(totalIncome), 20, 58);
+    
+    doc.setTextColor(239, 68, 68); // Red
+    doc.text(formatCurrency(totalExpense), 80, 58);
+    
+    doc.setTextColor(balance >= 0 ? 16 : 239, balance >= 0 ? 185 : 68, balance >= 0 ? 129 : 68);
+    doc.text(formatCurrency(Math.abs(balance)), 140, 58);
+    
+    // Transactions table
+    const tableData = filteredTransactions.map(t => {
+      const category = t.type === 'income' 
+        ? INCOME_CATEGORIES.find(c => c.id === t.category)
+        : CATEGORIES.find(c => c.id === t.category);
+      
+      return [
+        t.timestamp?.toDate?.() 
+          ? t.timestamp.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '-',
+        t.type === 'income' ? 'Income' : 'Expense',
+        category?.name || t.category || '-',
+        t.reason || t.description || '-',
+        t.type === 'income' ? `+${formatCurrency(t.amount)}` : `-${formatCurrency(t.amount)}`
+      ];
+    });
+    
+    autoTable(doc, {
+      startY: 75,
+      head: [['Date', 'Type', 'Category', 'Description', 'Amount']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 30, halign: 'right' }
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      didParseCell: (data) => {
+        // Color the amount column based on type
+        if (data.column.index === 4 && data.section === 'body') {
+          const amount = data.cell.text[0];
+          if (amount.startsWith('+')) {
+            data.cell.styles.textColor = [16, 185, 129];
+          } else if (amount.startsWith('-')) {
+            data.cell.styles.textColor = [239, 68, 68];
+          }
+        }
+      }
+    });
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Generated on ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} | Page ${i} of ${pageCount}`,
+        14,
+        doc.internal.pageSize.height - 10
+      );
+    }
+    
+    // Save the PDF
+    const fileName = `transactions_${periodLabel.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+    doc.save(fileName);
+    
+    if (showToast) {
+      showToast('PDF exported successfully!', 'success');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
@@ -228,6 +351,14 @@ const History = ({ userId, user, showToast, expenseCategories, incomeCategories 
             History
           </h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={exportToPDF}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              aria-label="Export to PDF"
+              title="Export to PDF"
+            >
+              <Download className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
