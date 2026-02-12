@@ -6,9 +6,11 @@ import AddIncomeModal from '../components/AddIncomeModal';
 import EditTransactionModal from '../components/EditTransactionModal';
 import CategoryManager from '../components/CategoryManager';
 import QuickAddButton from '../components/QuickAddButton';
+import UserProfile from '../components/UserProfile';
 
 const Dashboard = ({ 
-  userId, 
+  userId,
+  user,
   expenses, 
   incomes, 
   loadingExpenses, 
@@ -197,10 +199,11 @@ const Dashboard = ({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16 page-transition">
       <div className="max-w-md mx-auto p-4 space-y-6">
         {/* Header */}
-        <div className="text-center py-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between py-4">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             Expense Tracker
           </h1>
+          <UserProfile user={user} />
         </div>
 
         {/* Balance Card */}

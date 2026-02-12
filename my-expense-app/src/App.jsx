@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { auth, db, hasFirebaseConfig } from './utils/firebase';
 import { ThemeProvider } from './context/ThemeContext';
@@ -9,6 +9,8 @@ import History from './pages/History';
 import Analytics from './pages/Analytics';
 import BottomNav from './components/BottomNav';
 import Toast from './components/Toast';
+import LoginScreen from './components/LoginScreen';
+import UserProfile from './components/UserProfile';
 import { useToast } from './hooks/useToast';
 import './App.css';
 
@@ -38,15 +40,8 @@ function App() {
       if (currentUser) {
         setUser(currentUser);
       } else {
-        // Auto sign in anonymously if no user
-        signInAnonymously(auth)
-          .then((result) => {
-            setUser(result.user);
-          })
-          .catch((error) => {
-            console.error('Error signing in:', error);
-            setAuthError(error.message);
-          });
+        // No user signed in, show login screen
+        setUser(null);
       }
       setLoading(false);
     });
@@ -236,7 +231,8 @@ function App() {
     );
   }
 
-  if (authError || !user) {
+  // Show Firebase config error only when there's an actual config error
+  if (authError) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -250,20 +246,27 @@ function App() {
             <ol className="text-left text-sm text-yellow-700 dark:text-yellow-300 space-y-2 mb-4">
               <li>1. Create a Firebase project at console.firebase.google.com</li>
               <li>2. Enable Firestore Database</li>
-              <li>3. Enable Anonymous Authentication</li>
+              <li>3. Enable Google Authentication</li>
               <li>4. Create a <code className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">.env</code> file with your credentials</li>
             </ol>
             <p className="text-sm text-yellow-600 dark:text-yellow-400">
               See <code className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">README.md</code> for detailed instructions.
             </p>
           </div>
-          {authError && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Error: {authError}
-            </p>
-          )}
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Error: {authError}
+          </p>
         </div>
       </div>
+    );
+  }
+
+  // Show login screen if no user
+  if (!user) {
+    return (
+      <ThemeProvider>
+        <LoginScreen onError={(error) => showToast(error, 'error')} />
+      </ThemeProvider>
     );
   }
 
@@ -283,7 +286,8 @@ function App() {
 
         {currentPage === 'dashboard' && (
           <Dashboard 
-            userId={user?.uid} 
+            userId={user?.uid}
+            user={user}
             expenses={expenses} 
             incomes={incomes}
             loadingExpenses={loadingExpenses} 
@@ -298,7 +302,8 @@ function App() {
         )}
         {currentPage === 'history' && (
           <History 
-            userId={user?.uid} 
+            userId={user?.uid}
+            user={user}
             expenses={expenses}
             incomes={incomes}
             showToast={showToast}
@@ -309,6 +314,7 @@ function App() {
         {currentPage === 'analytics' && (
           <Analytics 
             userId={user?.uid}
+            user={user}
             expenses={expenses}
             incomes={incomes}
             expenseCategories={expenseCategories}

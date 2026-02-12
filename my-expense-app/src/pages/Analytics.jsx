@@ -4,8 +4,9 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, formatCurrency, getMonthDateRange } from '../utils/helpers';
 import { ArrowUpCircle, ArrowDownCircle, Wallet } from 'lucide-react';
+import UserProfile from '../components/UserProfile';
 
-const Analytics = ({ userId, expenseCategories, incomeCategories }) => {
+const Analytics = ({ userId, user, expenseCategories, incomeCategories }) => {
   // Use provided categories or fall back to defaults
   const CATEGORIES = expenseCategories && expenseCategories.length > 0 ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
   const INCOME_CATEGORIES = incomeCategories && incomeCategories.length > 0 ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
@@ -206,10 +207,11 @@ const Analytics = ({ userId, expenseCategories, incomeCategories }) => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16 page-transition">
       <div className="max-w-md mx-auto p-4 space-y-6">
         {/* Header */}
-        <div className="py-4">
+        <div className="flex items-center justify-between py-4">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
             Analytics
           </h1>
+          <UserProfile user={user} />
         </div>
 
         {/* Date Range Selector */}

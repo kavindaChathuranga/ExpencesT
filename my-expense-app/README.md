@@ -4,19 +4,24 @@ A mobile-first Progressive Web App (PWA) designed for university students to tra
 
 ## Features ✨
 
+- **Google Sign-In**: Secure authentication with your Google account
 - **Quick Expense Tracking**: Fast entry with category shortcuts (Food 🍔, Grocery 🛒, Bike 🏍️)
+- **Income Tracking**: Track your income sources alongside expenses
+- **Custom Categories**: Add, edit, and manage your own expense and income categories
 - **Smart Suggestions**: Frequently used reasons are suggested automatically
 - **Visual Analytics**: 
   - Daily spending bar charts
   - Category-wise pie charts
   - Monthly spending overview
+  - Income vs Expense comparison
 - **Transaction History**: 
   - Filter by date range
   - Filter by category
+  - Filter by type (expense/income)
   - Delete functionality
 - **Dark Mode**: Full dark mode support with smooth transitions
 - **PWA Ready**: Install on your iPhone home screen for app-like experience
-- **Offline Ready**: Works offline with service worker caching
+- **Cross-Device Sync**: Your data syncs across all devices
 
 ## Tech Stack 🛠️
 
@@ -44,7 +49,8 @@ npm install
    - Start with default rules (we'll update them)
 3. Enable **Authentication**:
    - Go to Authentication > Sign-in method
-   - Enable **Anonymous** authentication
+   - Enable **Google** sign-in provider
+   - Add your authorized domains (localhost, your deployed domain)
 4. Get your Firebase config:
    - Go to Project Settings > General
    - Scroll to "Your apps" section

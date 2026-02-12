@@ -5,8 +5,9 @@ import { db } from '../utils/firebase';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, formatCurrency, formatDate, getMonthDateRange, groupTransactionsByDate } from '../utils/helpers';
 import SwipeableExpenseItem from '../components/SwipeableExpenseItem';
 import ConfirmDialog from '../components/ConfirmDialog';
+import UserProfile from '../components/UserProfile';
 
-const History = ({ userId, showToast, expenseCategories, incomeCategories }) => {
+const History = ({ userId, user, showToast, expenseCategories, incomeCategories }) => {
   // Use provided categories or fall back to defaults
   const CATEGORIES = expenseCategories && expenseCategories.length > 0 ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
   const INCOME_CATEGORIES = incomeCategories && incomeCategories.length > 0 ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
@@ -226,13 +227,16 @@ const History = ({ userId, showToast, expenseCategories, incomeCategories }) => 
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
             History
           </h1>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            aria-label="Toggle filters"
-          >
-            <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              aria-label="Toggle filters"
+            >
+              <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+            <UserProfile user={user} />
+          </div>
         </div>
 
         {/* Filters */}
