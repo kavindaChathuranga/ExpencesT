@@ -201,7 +201,7 @@ const Dashboard = ({
         {/* Header */}
         <div className="flex items-center justify-between py-4">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Expense Tracker
+            ExpenseT
           </h1>
           <UserProfile user={user} />
         </div>
@@ -315,7 +315,7 @@ const Dashboard = ({
                     className={`bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center justify-between border cursor-pointer ${
                       isIncome 
                         ? 'border-emerald-200 dark:border-emerald-800 hover:border-emerald-400' 
-                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-400'
+                        : 'border-red-200 dark:border-red-800 hover:border-red-400'
                     } transition-colors active:scale-[0.98]`}
                   >
                     <div className="flex items-center gap-3">
@@ -330,7 +330,7 @@ const Dashboard = ({
                           <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                             isIncome 
                               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
-                              : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                           }`}>
                             {isIncome ? 'Income' : 'Expense'}
                           </span>
@@ -344,7 +344,7 @@ const Dashboard = ({
                       <p className={`font-semibold ${
                         isIncome 
                           ? 'text-emerald-600 dark:text-emerald-400' 
-                          : 'text-gray-900 dark:text-white'
+                          : 'text-red-600 dark:text-red-400'
                       }`}>
                         {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                       </p>

@@ -1,13 +1,25 @@
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
-import { LogOut, User, ChevronDown, Sun, Moon } from 'lucide-react';
+import { LogOut, User, ChevronDown, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const UserProfile = ({ user }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode, theme, setThemeMode } = useTheme();
+
+  const getThemeIcon = () => {
+    if (theme === 'light') return <Sun className="w-4 h-4" />;
+    if (theme === 'dark') return <Moon className="w-4 h-4" />;
+    return <Monitor className="w-4 h-4" />;
+  };
+
+  const getThemeLabel = () => {
+    if (theme === 'light') return 'Light';
+    if (theme === 'dark') return 'Dark';
+    return 'System';
+  };
 
   const handleLogout = async () => {
     try {
@@ -83,27 +95,47 @@ const UserProfile = ({ user }) => {
 
             {/* Theme Toggle */}
             <div className="px-2 py-2 border-b border-gray-200 dark:border-gray-700">
-              <button
-                onClick={toggleDarkMode}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  {darkMode ? (
-                    <Moon className="w-4 h-4" />
-                  ) : (
-                    <Sun className="w-4 h-4" />
-                  )}
-                  <span>Theme</span>
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-3 mb-3">
+                  {getThemeIcon()}
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Theme</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {darkMode ? 'Dark' : 'Light'}
-                  </span>
-                  <div className={`w-9 h-5 rounded-full p-0.5 transition-colors ${darkMode ? 'bg-gray-600' : 'bg-amber-400'}`}>
-                    <div className={`w-4 h-4 rounded-full shadow-sm transition-transform ${darkMode ? 'translate-x-4 bg-gray-300' : 'translate-x-0 bg-white'}`} />
-                  </div>
+                <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                  <button
+                    onClick={() => setThemeMode('light')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
+                      theme === 'light'
+                        ? 'bg-white dark:bg-gray-600 text-amber-600 dark:text-amber-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    Light
+                  </button>
+                  <button
+                    onClick={() => setThemeMode('dark')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
+                      theme === 'dark'
+                        ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-200 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5" />
+                    Dark
+                  </button>
+                  <button
+                    onClick={() => setThemeMode('system')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
+                      theme === 'system'
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    System
+                  </button>
                 </div>
-              </button>
+              </div>
             </div>
 
             {/* Logout Button */}

@@ -8,11 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['ExpenseT.png'],
       manifest: {
-        name: 'Student Expense Tracker',
-        short_name: 'Expenses',
-        description: 'Track your daily expenses with ease - designed for students',
+        name: 'ExpenseT - Expense Tracker',
+        short_name: 'ExpenseT',
+        description: 'Track your daily expenses with ease',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
         display: 'standalone',
@@ -21,17 +21,17 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'ExpenseT.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'ExpenseT.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'ExpenseT.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

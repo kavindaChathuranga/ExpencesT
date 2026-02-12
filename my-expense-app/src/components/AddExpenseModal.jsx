@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Settings } from 'lucide-react';
+import { X, Settings, Receipt, Plus } from 'lucide-react';
 import { collection, addDoc, Timestamp, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 
@@ -156,7 +156,7 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory,
         <div className="px-4 py-3 border-b border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 rounded-t-2xl flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg">💸</span>
+              <Receipt className="w-5 h-5 text-red-600 dark:text-red-400" />
               <h2 className="text-sm font-semibold text-red-800 dark:text-red-200" id="modal-title">
                 Add Expense
               </h2>
@@ -249,7 +249,7 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory,
                   onClick={onManageCategories}
                   className="col-span-3 flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-red-400 hover:text-red-500 transition-colors"
                 >
-                  <span className="text-2xl mb-1">💸</span>
+                  <Plus className="w-6 h-6 mb-1 text-red-500" />
                   <span className="text-xs font-medium">Add Category</span>
                   <span className="text-[10px] text-gray-400">Create your first category</span>
                 </button>
