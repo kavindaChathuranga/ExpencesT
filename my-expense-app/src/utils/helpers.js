@@ -1,3 +1,4 @@
+// Expense Categories
 export const CATEGORIES = [
   { id: 'food', name: 'Food', icon: '🍔', color: 'bg-orange-500' },
   { id: 'grocery', name: 'Grocery', icon: '🛒', color: 'bg-green-500' },
@@ -6,6 +7,17 @@ export const CATEGORIES = [
   { id: 'mobile', name: 'Mobile Bill', icon: '📱', color: 'bg-pink-500' },
   { id: 'stationery', name: 'Stationery', icon: '✏️', color: 'bg-yellow-500' },
   { id: 'other', name: 'Other', icon: '💰', color: 'bg-gray-500' }
+];
+
+// Income Categories
+export const INCOME_CATEGORIES = [
+  { id: 'salary', name: 'Salary', icon: '💵', color: 'bg-emerald-500' },
+  { id: 'freelance', name: 'Freelance', icon: '💻', color: 'bg-cyan-500' },
+  { id: 'gift', name: 'Gift', icon: '🎁', color: 'bg-pink-500' },
+  { id: 'investment', name: 'Investment', icon: '📈', color: 'bg-indigo-500' },
+  { id: 'refund', name: 'Refund', icon: '↩️', color: 'bg-amber-500' },
+  { id: 'allowance', name: 'Allowance', icon: '👨‍👩‍👧', color: 'bg-violet-500' },
+  { id: 'other_income', name: 'Other', icon: '💎', color: 'bg-teal-500' }
 ];
 
 export const formatCurrency = (amount) => {
@@ -65,6 +77,30 @@ export const groupExpensesByDate = (expenses) => {
       groups[label] = [];
     }
     groups[label].push(expense);
+  });
+  
+  return groups;
+};
+
+// Group transactions (expenses + incomes) by date
+export const groupTransactionsByDate = (transactions) => {
+  const groups = {};
+  
+  transactions.forEach(transaction => {
+    const label = getRelativeDateLabel(transaction.timestamp);
+    if (!groups[label]) {
+      groups[label] = [];
+    }
+    groups[label].push(transaction);
+  });
+  
+  // Sort transactions within each group by timestamp (newest first)
+  Object.keys(groups).forEach(key => {
+    groups[key].sort((a, b) => {
+      const timeA = a.timestamp?.toMillis?.() || a.timestamp?.getTime?.() || 0;
+      const timeB = b.timestamp?.toMillis?.() || b.timestamp?.getTime?.() || 0;
+      return timeB - timeA;
+    });
   });
   
   return groups;

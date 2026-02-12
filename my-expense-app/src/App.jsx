@@ -17,7 +17,9 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [authError, setAuthError] = useState(null);
   const [expenses, setExpenses] = useState([]);
+  const [incomes, setIncomes] = useState([]);
   const [loadingExpenses, setLoadingExpenses] = useState(true);
+  const [loadingIncomes, setLoadingIncomes] = useState(true);
   const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -86,6 +88,42 @@ function App() {
     return () => unsubscribe();
   }, [user]);
 
+  // Real-time income data fetching with onSnapshot
+  useEffect(() => {
+    if (!user) return;
+
+    setLoadingIncomes(true);
+    
+    const q = query(
+      collection(db, 'incomes'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        const incomesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .sort((a, b) => {
+          // Sort by timestamp descending
+          const timeA = a.timestamp?.toMillis?.() || 0;
+          const timeB = b.timestamp?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+        
+        setIncomes(incomesData);
+        setLoadingIncomes(false);
+      },
+      (error) => {
+        console.error('Error fetching incomes:', error);
+        setLoadingIncomes(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -143,13 +181,29 @@ function App() {
         ))}
 
         {currentPage === 'dashboard' && (
-          <Dashboard userId={user?.uid} expenses={expenses} loadingExpenses={loadingExpenses} showToast={showToast} />
+          <Dashboard 
+            userId={user?.uid} 
+            expenses={expenses} 
+            incomes={incomes}
+            loadingExpenses={loadingExpenses} 
+            loadingIncomes={loadingIncomes}
+            showToast={showToast} 
+          />
         )}
         {currentPage === 'history' && (
-          <History userId={user?.uid} showToast={showToast} />
+          <History 
+            userId={user?.uid} 
+            expenses={expenses}
+            incomes={incomes}
+            showToast={showToast} 
+          />
         )}
         {currentPage === 'analytics' && (
-          <Analytics userId={user?.uid} />
+          <Analytics 
+            userId={user?.uid}
+            expenses={expenses}
+            incomes={incomes}
+          />
         )}
         
         <BottomNav
