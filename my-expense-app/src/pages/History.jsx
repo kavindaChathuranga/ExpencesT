@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react';
 import { Filter, Trash2, Calendar, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { CATEGORIES, INCOME_CATEGORIES, formatCurrency, formatDate, getMonthDateRange, groupTransactionsByDate } from '../utils/helpers';
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, formatCurrency, formatDate, getMonthDateRange, groupTransactionsByDate } from '../utils/helpers';
 import SwipeableExpenseItem from '../components/SwipeableExpenseItem';
 import ConfirmDialog from '../components/ConfirmDialog';
 
-const History = ({ userId, showToast }) => {
+const History = ({ userId, showToast, expenseCategories, incomeCategories }) => {
+  // Use provided categories or fall back to defaults
+  const CATEGORIES = expenseCategories && expenseCategories.length > 0 ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
+  const INCOME_CATEGORIES = incomeCategories && incomeCategories.length > 0 ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
+
   const [expenses, setExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);

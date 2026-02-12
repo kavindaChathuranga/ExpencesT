@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Settings } from 'lucide-react';
 import { collection, addDoc, Timestamp, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { CATEGORIES } from '../utils/helpers';
+import { DEFAULT_EXPENSE_CATEGORIES } from '../utils/helpers';
 
-const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory }) => {
+const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory, categories, onManageCategories }) => {
+  // Use provided categories or fall back to defaults
+  const expenseCategories = categories && categories.length > 0 ? categories : DEFAULT_EXPENSE_CATEGORIES;
+  
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(preselectedCategory || '');
   const [reason, setReason] = useState('');
@@ -150,18 +153,21 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
         className="bg-white dark:bg-gray-800 w-full max-w-[320px] rounded-t-2xl sm:rounded-2xl shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[calc(100vh-100px)] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Simple Header */}
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-2xl flex-shrink-0">
+        {/* Header with red accent */}
+        <div className="px-4 py-3 border-b border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 rounded-t-2xl flex-shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white" id="modal-title">
-              Add Expense
-            </h2>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">💸</span>
+              <h2 className="text-sm font-semibold text-red-800 dark:text-red-200" id="modal-title">
+                Add Expense
+              </h2>
+            </div>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-1 hover:bg-red-100 dark:hover:bg-red-800 rounded-lg transition-colors"
               aria-label="Close modal"
             >
-              <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <X className="w-4 h-4 text-red-600 dark:text-red-400" />
             </button>
           </div>
         </div>
@@ -174,8 +180,8 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
               Amount
             </label>
             <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-semibold">
-                ₨
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-red-600 dark:text-red-400 text-sm font-semibold">
+                -₨
               </span>
               <input
                 type="number"
@@ -187,7 +193,7 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
                 }}
                 placeholder="0.00"
                 autoFocus
-                className={`w-full pl-8 pr-2.5 py-2 bg-gray-50 dark:bg-gray-900/50 border ${errors.amount && touched.amount ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white text-sm transition-all`}
+                className={`w-full pl-10 pr-2.5 py-2 bg-red-50 dark:bg-red-900/20 border ${errors.amount && touched.amount ? 'border-red-500' : 'border-red-300 dark:border-red-700'} rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 dark:text-white text-sm transition-all`}
                 required
                 min="0"
                 step="0.01"
@@ -200,11 +206,23 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
 
           {/* Category Quick Select */}
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300">
-              Category
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {CATEGORIES.map(cat => (
+            <div className="flex items-center justify-between">
+              <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300">
+                Category
+              </label>
+              {onManageCategories && (
+                <button
+                  type="button"
+                  onClick={onManageCategories}
+                  className="text-[10px] text-red-600 dark:text-red-400 flex items-center gap-1 hover:underline"
+                >
+                  <Settings className="w-3 h-3" />
+                  Manage
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-2">
+              {expenseCategories.map(cat => (
                 <button
                   key={cat.id}
                   type="button"
@@ -215,7 +233,7 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
                   }}
                   className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all active:scale-95 ${
                     category === cat.id 
-                      ? `${cat.color} text-white ring-2 ring-offset-1 ring-blue-500 dark:ring-offset-gray-800` 
+                      ? `${cat.color} text-white ring-2 ring-offset-1 ring-red-500 dark:ring-offset-gray-800` 
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
@@ -245,7 +263,7 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
                 validateField('reason', reason);
               }}
               placeholder="What did you buy?"
-              className={`w-full px-2.5 py-2 bg-gray-50 dark:bg-gray-900/50 border ${errors.reason && touched.reason ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white text-sm transition-all`}
+              className={`w-full px-2.5 py-2 bg-gray-50 dark:bg-gray-900/50 border ${errors.reason && touched.reason ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 dark:text-white text-sm transition-all`}
               required
             />
             {errors.reason && touched.reason && (
@@ -287,7 +305,7 @@ const AddExpenseModal = ({ userId, onClose, onExpenseAdded, preselectedCategory 
             <button
               type="submit"
               disabled={loading || Object.keys(errors).length > 0}
-              className="flex-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-medium text-xs rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-busy={loading}
             >
               {loading ? (

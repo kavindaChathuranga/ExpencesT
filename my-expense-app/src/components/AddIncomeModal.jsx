@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Settings } from 'lucide-react';
 import { collection, addDoc, Timestamp, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { INCOME_CATEGORIES } from '../utils/helpers';
+import { DEFAULT_INCOME_CATEGORIES } from '../utils/helpers';
 
-const AddIncomeModal = ({ userId, onClose, onIncomeAdded, preselectedCategory }) => {
+const AddIncomeModal = ({ userId, onClose, onIncomeAdded, preselectedCategory, categories, onManageCategories }) => {
+  // Use provided categories or fall back to defaults
+  const incomeCategories = categories && categories.length > 0 ? categories : DEFAULT_INCOME_CATEGORIES;
+  
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(preselectedCategory || '');
   const [description, setDescription] = useState('');
@@ -203,11 +206,23 @@ const AddIncomeModal = ({ userId, onClose, onIncomeAdded, preselectedCategory })
 
           {/* Category Quick Select */}
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300">
-              Source
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {INCOME_CATEGORIES.map(cat => (
+            <div className="flex items-center justify-between">
+              <label className="block text-[11px] font-medium text-gray-700 dark:text-gray-300">
+                Source
+              </label>
+              {onManageCategories && (
+                <button
+                  type="button"
+                  onClick={onManageCategories}
+                  className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 hover:underline"
+                >
+                  <Settings className="w-3 h-3" />
+                  Manage
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-2">
+              {incomeCategories.map(cat => (
                 <button
                   key={cat.id}
                   type="button"

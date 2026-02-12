@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { auth, db, hasFirebaseConfig } from './utils/firebase';
 import { ThemeProvider } from './context/ThemeContext';
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES } from './utils/helpers';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import Analytics from './pages/Analytics';
@@ -20,6 +21,8 @@ function App() {
   const [incomes, setIncomes] = useState([]);
   const [loadingExpenses, setLoadingExpenses] = useState(true);
   const [loadingIncomes, setLoadingIncomes] = useState(true);
+  const [expenseCategories, setExpenseCategories] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState([]);
   const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -124,6 +127,104 @@ function App() {
     return () => unsubscribe();
   }, [user]);
 
+  // Fetch user expense categories
+  useEffect(() => {
+    if (!user) return;
+    
+    const q = query(
+      collection(db, 'categories'),
+      where('userId', '==', user.uid),
+      where('type', '==', 'expense')
+    );
+
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        const customCategories = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          isCustom: true
+        }));
+        // Only show user's custom expense categories (no defaults)
+        setExpenseCategories(customCategories);
+      },
+      (error) => {
+        console.error('Error fetching expense categories:', error);
+        setExpenseCategories([]);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Fetch user income categories
+  useEffect(() => {
+    if (!user) return;
+    
+    const q = query(
+      collection(db, 'categories'),
+      where('userId', '==', user.uid),
+      where('type', '==', 'income')
+    );
+
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        const customCategories = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          isCustom: true
+        }));
+        // Only show user's custom income sources (no defaults)
+        setIncomeCategories(customCategories);
+      },
+      (error) => {
+        console.error('Error fetching income categories:', error);
+        setIncomeCategories([]);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Category management functions
+  const addCategory = async (categoryData) => {
+    try {
+      await addDoc(collection(db, 'categories'), {
+        ...categoryData,
+        userId: user.uid
+      });
+      showToast('Category added!', 'success');
+      return true;
+    } catch (error) {
+      console.error('Error adding category:', error);
+      showToast('Failed to add category', 'error');
+      return false;
+    }
+  };
+
+  const updateCategory = async (categoryId, categoryData) => {
+    try {
+      await updateDoc(doc(db, 'categories', categoryId), categoryData);
+      showToast('Category updated!', 'success');
+      return true;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      showToast('Failed to update category', 'error');
+      return false;
+    }
+  };
+
+  const deleteCategory = async (categoryId) => {
+    try {
+      await deleteDoc(doc(db, 'categories', categoryId));
+      showToast('Category deleted!', 'success');
+      return true;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      showToast('Failed to delete category', 'error');
+      return false;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -187,7 +288,12 @@ function App() {
             incomes={incomes}
             loadingExpenses={loadingExpenses} 
             loadingIncomes={loadingIncomes}
-            showToast={showToast} 
+            showToast={showToast}
+            expenseCategories={expenseCategories}
+            incomeCategories={incomeCategories}
+            addCategory={addCategory}
+            updateCategory={updateCategory}
+            deleteCategory={deleteCategory}
           />
         )}
         {currentPage === 'history' && (
@@ -195,7 +301,9 @@ function App() {
             userId={user?.uid} 
             expenses={expenses}
             incomes={incomes}
-            showToast={showToast} 
+            showToast={showToast}
+            expenseCategories={expenseCategories}
+            incomeCategories={incomeCategories}
           />
         )}
         {currentPage === 'analytics' && (
@@ -203,6 +311,8 @@ function App() {
             userId={user?.uid}
             expenses={expenses}
             incomes={incomes}
+            expenseCategories={expenseCategories}
+            incomeCategories={incomeCategories}
           />
         )}
         

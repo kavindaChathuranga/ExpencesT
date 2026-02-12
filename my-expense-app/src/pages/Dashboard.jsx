@@ -1,17 +1,33 @@
 import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, TrendingDown, Calendar, Wallet, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
-import { CATEGORIES, INCOME_CATEGORIES, formatCurrency, getMonthDateRange, getTodayDateRange } from '../utils/helpers';
+import { Plus, TrendingUp, TrendingDown, Calendar, Wallet, ArrowUpCircle, ArrowDownCircle, Pencil, Settings } from 'lucide-react';
+import { formatCurrency, getMonthDateRange, getTodayDateRange } from '../utils/helpers';
 import AddExpenseModal from '../components/AddExpenseModal';
 import AddIncomeModal from '../components/AddIncomeModal';
+import EditTransactionModal from '../components/EditTransactionModal';
+import CategoryManager from '../components/CategoryManager';
 import QuickAddButton from '../components/QuickAddButton';
 
-const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes, showToast }) => {
+const Dashboard = ({ 
+  userId, 
+  expenses, 
+  incomes, 
+  loadingExpenses, 
+  loadingIncomes, 
+  showToast,
+  expenseCategories,
+  incomeCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory
+}) => {
   const [monthlyExpenseTotal, setMonthlyExpenseTotal] = useState(0);
   const [monthlyIncomeTotal, setMonthlyIncomeTotal] = useState(0);
   const [todayExpenseTotal, setTodayExpenseTotal] = useState(0);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(null); // 'expense' or 'income'
 
   useEffect(() => {
     calculateExpenseTotals(expenses || []);
@@ -99,7 +115,15 @@ const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes,
     }
   };
 
-  const quickCategories = CATEGORIES.filter(cat => 
+  const handleEditTransaction = (transaction) => {
+    setEditingTransaction(transaction);
+  };
+
+  const handleTransactionUpdated = () => {
+    setEditingTransaction(null);
+  };
+
+  const quickCategories = (expenseCategories || []).filter(cat => 
     ['food', 'grocery', 'bike'].includes(cat.id)
   );
 
@@ -278,17 +302,18 @@ const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes,
               {recentTransactions.map((transaction) => {
                 const isIncome = transaction.type === 'income';
                 const category = isIncome 
-                  ? INCOME_CATEGORIES.find(cat => cat.id === transaction.category)
-                  : CATEGORIES.find(cat => cat.id === transaction.category);
+                  ? (incomeCategories || []).find(cat => cat.id === transaction.category)
+                  : (expenseCategories || []).find(cat => cat.id === transaction.category);
                 
                 return (
                   <div 
                     key={transaction.id} 
-                    className={`bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center justify-between border ${
+                    onClick={() => handleEditTransaction(transaction)}
+                    className={`bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center justify-between border cursor-pointer ${
                       isIncome 
-                        ? 'border-emerald-200 dark:border-emerald-800' 
-                        : 'border-gray-200 dark:border-gray-700'
-                    } transition-colors`}
+                        ? 'border-emerald-200 dark:border-emerald-800 hover:border-emerald-400' 
+                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-400'
+                    } transition-colors active:scale-[0.98]`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 ${category?.color || 'bg-gray-500'} rounded-full flex items-center justify-center text-xl`}>
@@ -312,7 +337,7 @@ const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes,
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center gap-2">
                       <p className={`font-semibold ${
                         isIncome 
                           ? 'text-emerald-600 dark:text-emerald-400' 
@@ -320,6 +345,7 @@ const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes,
                       }`}>
                         {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                       </p>
+                      <Pencil className="w-3.5 h-3.5 text-gray-400" />
                     </div>
                   </div>
                 );
@@ -334,11 +360,16 @@ const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes,
         <AddExpenseModal
           userId={userId}
           preselectedCategory={selectedCategory}
+          categories={expenseCategories}
           onClose={() => {
             setShowExpenseModal(false);
             setSelectedCategory(null);
           }}
           onExpenseAdded={handleExpenseAdded}
+          onManageCategories={() => {
+            setShowExpenseModal(false);
+            setShowCategoryManager('expense');
+          }}
         />
       )}
 
@@ -346,8 +377,54 @@ const Dashboard = ({ userId, expenses, incomes, loadingExpenses, loadingIncomes,
       {showIncomeModal && (
         <AddIncomeModal
           userId={userId}
+          categories={incomeCategories}
           onClose={() => setShowIncomeModal(false)}
           onIncomeAdded={handleIncomeAdded}
+          onManageCategories={() => {
+            setShowIncomeModal(false);
+            setShowCategoryManager('income');
+          }}
+        />
+      )}
+
+      {/* Edit Transaction Modal */}
+      {editingTransaction && (
+        <EditTransactionModal
+          transaction={editingTransaction}
+          expenseCategories={expenseCategories}
+          incomeCategories={incomeCategories}
+          onClose={() => setEditingTransaction(null)}
+          onUpdated={handleTransactionUpdated}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Category Manager Modal */}
+      {showCategoryManager && (
+        <CategoryManager
+          type={showCategoryManager}
+          categories={showCategoryManager === 'expense' ? expenseCategories : incomeCategories}
+          onAdd={addCategory}
+          onUpdate={updateCategory}
+          onDelete={deleteCategory}
+          onClose={() => {
+            // Navigate back to the respective Add modal
+            if (showCategoryManager === 'expense') {
+              setShowExpenseModal(true);
+            } else {
+              setShowIncomeModal(true);
+            }
+            setShowCategoryManager(null);
+          }}
+          onSelect={(category) => {
+            setSelectedCategory(category.id);
+            if (showCategoryManager === 'expense') {
+              setShowExpenseModal(true);
+            } else {
+              setShowIncomeModal(true);
+            }
+            setShowCategoryManager(null);
+          }}
         />
       )}
     </div>

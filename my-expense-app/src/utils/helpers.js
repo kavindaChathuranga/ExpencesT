@@ -1,5 +1,5 @@
-// Expense Categories
-export const CATEGORIES = [
+// Default Expense Categories (fallback)
+export const DEFAULT_EXPENSE_CATEGORIES = [
   { id: 'food', name: 'Food', icon: '🍔', color: 'bg-orange-500' },
   { id: 'grocery', name: 'Grocery', icon: '🛒', color: 'bg-green-500' },
   { id: 'bike', name: 'Bike', icon: '🏍️', color: 'bg-blue-500' },
@@ -9,8 +9,8 @@ export const CATEGORIES = [
   { id: 'other', name: 'Other', icon: '💰', color: 'bg-gray-500' }
 ];
 
-// Income Categories
-export const INCOME_CATEGORIES = [
+// Default Income Categories (fallback)
+export const DEFAULT_INCOME_CATEGORIES = [
   { id: 'salary', name: 'Salary', icon: '💵', color: 'bg-emerald-500' },
   { id: 'freelance', name: 'Freelance', icon: '💻', color: 'bg-cyan-500' },
   { id: 'gift', name: 'Gift', icon: '🎁', color: 'bg-pink-500' },
@@ -18,6 +18,27 @@ export const INCOME_CATEGORIES = [
   { id: 'refund', name: 'Refund', icon: '↩️', color: 'bg-amber-500' },
   { id: 'allowance', name: 'Allowance', icon: '👨‍👩‍👧', color: 'bg-violet-500' },
   { id: 'other_income', name: 'Other', icon: '💎', color: 'bg-teal-500' }
+];
+
+// Keep legacy exports for backward compatibility
+export const CATEGORIES = DEFAULT_EXPENSE_CATEGORIES;
+export const INCOME_CATEGORIES = DEFAULT_INCOME_CATEGORIES;
+
+// Common icons for category selection
+export const COMMON_ICONS = [
+  '🍔', '🍕', '🍜', '☕', '🍺', '🛒', '🏍️', '🚌', '🚗', '✈️',
+  '📱', '💻', '🎮', '📚', '✏️', '🎬', '🎵', '🏥', '💊', '🏋️',
+  '👕', '👟', '💇', '🏠', '💡', '🔧', '🎁', '💵', '💳', '📈',
+  '💼', '🏦', '📦', '🛍️', '🎓', '🐕', '🌱', '⛽', '🅿️', '💰'
+];
+
+// Category colors
+export const CATEGORY_COLORS = [
+  'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
+  'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
+  'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
+  'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500',
+  'bg-rose-500', 'bg-gray-500'
 ];
 
 export const formatCurrency = (amount) => {

@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { CATEGORIES, INCOME_CATEGORIES, formatCurrency, getMonthDateRange } from '../utils/helpers';
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, formatCurrency, getMonthDateRange } from '../utils/helpers';
 import { ArrowUpCircle, ArrowDownCircle, Wallet } from 'lucide-react';
 
-const Analytics = ({ userId }) => {
+const Analytics = ({ userId, expenseCategories, incomeCategories }) => {
+  // Use provided categories or fall back to defaults
+  const CATEGORIES = expenseCategories && expenseCategories.length > 0 ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
+  const INCOME_CATEGORIES = incomeCategories && incomeCategories.length > 0 ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
+
   const [expenses, setExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
   const [loading, setLoading] = useState(true);
