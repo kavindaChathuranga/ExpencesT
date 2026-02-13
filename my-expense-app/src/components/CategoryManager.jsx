@@ -87,11 +87,11 @@ const CategoryManager = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70] sm:p-4"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-gray-800 w-full max-w-[340px] rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[80vh] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-800 w-full max-w-[340px] rounded-2xl shadow-xl max-h-[80vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
