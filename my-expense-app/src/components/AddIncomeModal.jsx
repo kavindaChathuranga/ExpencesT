@@ -142,18 +142,18 @@ const AddIncomeModal = ({ userId, onClose, onIncomeAdded, preselectedCategory, c
 
   return (
     <div 
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-end sm:items-center justify-center z-[60] sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-200"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-white dark:bg-gray-800 w-full max-w-[320px] rounded-t-2xl sm:rounded-2xl shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[calc(100vh-100px)] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-800 w-full max-w-[320px] rounded-2xl shadow-xl animate-in zoom-in-95 duration-200 max-h-[calc(100vh-100px)] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with green accent */}
-        <div className="px-4 py-3 border-b border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 rounded-t-2xl flex-shrink-0">
+        <div className="px-4 py-3 border-b border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg">💵</span>

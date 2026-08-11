@@ -81,11 +81,11 @@ const EditTransactionModal = ({ transaction, onClose, onUpdated, showToast, expe
 
   return (
     <div 
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-end sm:items-center justify-center z-[60] sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-gray-800 w-full max-w-[320px] rounded-t-2xl sm:rounded-2xl shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[calc(100vh-100px)] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-800 w-full max-w-[320px] rounded-2xl shadow-xl animate-in zoom-in-95 duration-200 max-h-[calc(100vh-100px)] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
