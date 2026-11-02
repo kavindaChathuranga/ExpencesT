@@ -183,7 +183,7 @@ This project includes `vercel.json` and is already configured for Vercel deploym
 
 If this repository is already deployed, add your live URL here:
 
-- Live App: `https://your-app-name.vercel.app`
+- Live App: `https://expense-tracker-v1-six.vercel.app/`
 
 ## License
 
