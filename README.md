@@ -37,16 +37,18 @@ This project helps users track where their money goes, monitor spending patterns
 ├── src/
 │   ├── components/
 │   ├── hooks/
-│   ├── pages/
-│   ├── utils/
+│   ├── firebase.js
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
 ├── .env.example
+├── .eslintrc.cjs
 ├── .gitignore
 ├── index.html
+├── package-lock.json
 ├── package.json
 ├── postcss.config.js
+├── QUICKSTART.md
 ├── tailwind.config.js
 ├── vite.config.js
 ├── README.md
@@ -88,6 +90,12 @@ npm install
 
 ```bash
 cp .env.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
 Then update the values in `.env`:
@@ -132,7 +140,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /expenses/{expenseId} {
-      allow read, write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }
@@ -169,7 +179,11 @@ This project is ready to be deployed to platforms such as:
 - Firebase Hosting
 - Netlify
 
-For Vercel deployment, connect the repository and deploy the app using the default Vercel setup for Vite projects.
+This project includes `vercel.json` and is already configured for Vercel deployments.
+
+If this repository is already deployed, add your live URL here:
+
+- Live App: `https://your-app-name.vercel.app`
 
 ## License
 
